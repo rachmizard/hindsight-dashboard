@@ -4,7 +4,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import Database from "better-sqlite3"
 import { eq } from "drizzle-orm"
 import { drizzle } from "drizzle-orm/better-sqlite3"
-import { mkdirSync, readFileSync } from "node:fs"
+import { mkdirSync } from "node:fs"
 import { dirname } from "node:path"
 import * as schema from "./auth-schema"
 
@@ -19,24 +19,58 @@ const sqlite = new Database(dbPath)
 sqlite.pragma("journal_mode = WAL")
 const db = drizzle(sqlite, { schema })
 
-// Auto-run migrations on startup
+// Auto-run migrations on startup (inline SQL — no external file dependency)
 function runMigrations() {
-  try {
-    const migrationSql = readFileSync(
-      new URL("../../drizzle/0000_flawless_sunspot.sql", import.meta.url),
-      "utf-8"
-    )
-    const statements = migrationSql
-      .split("--> statement-breakpoint")
-      .map((s) => s.trim())
-      .filter(Boolean)
-    for (const stmt of statements) {
-      sqlite.exec(stmt)
-    }
-    console.log("[auth] Migrations applied successfully")
-  } catch (e: any) {
-    console.error("[auth] Migration error:", e?.message || e)
+  const migrationSql = [
+    `CREATE TABLE IF NOT EXISTS "user" (
+      "id" text PRIMARY KEY NOT NULL,
+      "name" text NOT NULL,
+      "email" text NOT NULL,
+      "email_verified" integer NOT NULL,
+      "image" text,
+      "created_at" text NOT NULL,
+      "updated_at" text NOT NULL
+    )`,
+    `CREATE UNIQUE INDEX IF NOT EXISTS "user_email_unique" ON "user" ("email")`,
+    `CREATE TABLE IF NOT EXISTS "session" (
+      "id" text PRIMARY KEY NOT NULL,
+      "expires_at" text NOT NULL,
+      "token" text NOT NULL,
+      "created_at" text NOT NULL,
+      "updated_at" text NOT NULL,
+      "ip_address" text,
+      "user_agent" text,
+      "user_id" text NOT NULL REFERENCES "user"("id")
+    )`,
+    `CREATE UNIQUE INDEX IF NOT EXISTS "session_token_unique" ON "session" ("token")`,
+    `CREATE TABLE IF NOT EXISTS "account" (
+      "id" text PRIMARY KEY NOT NULL,
+      "account_id" text NOT NULL,
+      "provider_id" text NOT NULL,
+      "user_id" text NOT NULL REFERENCES "user"("id"),
+      "access_token" text,
+      "refresh_token" text,
+      "id_token" text,
+      "access_token_expires_at" text,
+      "refresh_token_expires_at" text,
+      "scope" text,
+      "password" text,
+      "created_at" text NOT NULL,
+      "updated_at" text NOT NULL
+    )`,
+    `CREATE TABLE IF NOT EXISTS "verification" (
+      "id" text PRIMARY KEY NOT NULL,
+      "identifier" text NOT NULL,
+      "value" text NOT NULL,
+      "expires_at" text NOT NULL,
+      "created_at" text,
+      "updated_at" text
+    )`,
+  ]
+  for (const stmt of migrationSql) {
+    sqlite.exec(stmt)
   }
+  console.log("[auth] Migrations applied successfully")
 }
 runMigrations()
 
