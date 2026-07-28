@@ -1,7 +1,7 @@
-import { HeadContent, Scripts, createRootRouteWithContext } from '@tanstack/react-router'
+import { HeadContent, Scripts, createRootRouteWithContext, useRouter } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
-import { QueryClient } from '@tanstack/react-query'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Link, Outlet } from '@tanstack/react-router'
 import BankSelector from '../components/BankSelector'
 
@@ -36,6 +36,9 @@ export const Route = createRootRouteWithContext<{
 })
 
 function RootDocument({ children }: { children: React.ReactNode }) {
+  const router = useRouter()
+  const queryClient = router.options.context.queryClient
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -43,73 +46,75 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body className="font-sans antialiased [overflow-wrap:anywhere] selection:bg-[rgba(79,184,178,0.24)]">
-        <div className="flex min-h-screen">
-          {/* Sidebar */}
-          <aside className="w-64 shrink-0 border-r border-[var(--line)] bg-[var(--surface)] p-4">
-            <div className="mb-6">
-              <h1 className="text-lg font-bold text-[var(--sea-ink)]">
-                Hindsight
-              </h1>
-              <p className="text-xs text-[var(--sea-ink-soft)]">Dashboard</p>
-            </div>
+        <QueryClientProvider client={queryClient}>
+          <div className="flex min-h-screen">
+            {/* Sidebar */}
+            <aside className="w-64 shrink-0 border-r border-[var(--line)] bg-[var(--surface)] p-4">
+              <div className="mb-6">
+                <h1 className="text-lg font-bold text-[var(--sea-ink)]">
+                  Hindsight
+                </h1>
+                <p className="text-xs text-[var(--sea-ink-soft)]">Dashboard</p>
+              </div>
 
-            <nav className="mb-6 flex flex-col gap-1">
-              <Link
-                to="/"
-                className="nav-link rounded-md px-3 py-2 text-sm hover:bg-[var(--chip-bg)]"
-                activeProps={{ className: 'is-active bg-[var(--chip-bg)]' }}
-              >
-                Overview
-              </Link>
-              <Link
-                to="/memories"
-                className="nav-link rounded-md px-3 py-2 text-sm hover:bg-[var(--chip-bg)]"
-                activeProps={{ className: 'is-active bg-[var(--chip-bg)]' }}
-              >
-                Memories
-              </Link>
-              <Link
-                to="/entities"
-                className="nav-link rounded-md px-3 py-2 text-sm hover:bg-[var(--chip-bg)]"
-                activeProps={{ className: 'is-active bg-[var(--chip-bg)]' }}
-              >
-                Entity Graph
-              </Link>
-              <Link
-                to="/recall"
-                className="nav-link rounded-md px-3 py-2 text-sm hover:bg-[var(--chip-bg)]"
-                activeProps={{ className: 'is-active bg-[var(--chip-bg)]' }}
-              >
-                Recall Search
-              </Link>
-            </nav>
+              <nav className="mb-6 flex flex-col gap-1">
+                <Link
+                  to="/"
+                  className="nav-link rounded-md px-3 py-2 text-sm hover:bg-[var(--chip-bg)]"
+                  activeProps={{ className: 'is-active bg-[var(--chip-bg)]' }}
+                >
+                  Overview
+                </Link>
+                <Link
+                  to="/memories"
+                  className="nav-link rounded-md px-3 py-2 text-sm hover:bg-[var(--chip-bg)]"
+                  activeProps={{ className: 'is-active bg-[var(--chip-bg)]' }}
+                >
+                  Memories
+                </Link>
+                <Link
+                  to="/entities"
+                  className="nav-link rounded-md px-3 py-2 text-sm hover:bg-[var(--chip-bg)]"
+                  activeProps={{ className: 'is-active bg-[var(--chip-bg)]' }}
+                >
+                  Entity Graph
+                </Link>
+                <Link
+                  to="/recall"
+                  className="nav-link rounded-md px-3 py-2 text-sm hover:bg-[var(--chip-bg)]"
+                  activeProps={{ className: 'is-active bg-[var(--chip-bg)]' }}
+                >
+                  Recall Search
+                </Link>
+              </nav>
 
-            <div className="border-t border-[var(--line)] pt-4">
-              <p className="mb-2 text-xs font-semibold text-[var(--sea-ink-soft)] uppercase tracking-wider">
-                Active Bank
-              </p>
-              <BankSelector />
-            </div>
-          </aside>
+              <div className="border-t border-[var(--line)] pt-4">
+                <p className="mb-2 text-xs font-semibold text-[var(--sea-ink-soft)] uppercase tracking-wider">
+                  Active Bank
+                </p>
+                <BankSelector />
+              </div>
+            </aside>
 
-          {/* Main content */}
-          <main className="flex-1">
-            {children}
-          </main>
-        </div>
+            {/* Main content */}
+            <main className="flex-1">
+              {children}
+            </main>
+          </div>
 
-        <TanStackDevtools
-          config={{
-            position: 'bottom-right',
-          }}
-          plugins={[
-            {
-              name: 'Tanstack Router',
-              render: <TanStackRouterDevtoolsPanel />,
-            },
-          ]}
-        />
-        <Scripts />
+          <TanStackDevtools
+            config={{
+              position: 'bottom-right',
+            }}
+            plugins={[
+              {
+                name: 'Tanstack Router',
+                render: <TanStackRouterDevtoolsPanel />,
+              },
+            ]}
+          />
+          <Scripts />
+        </QueryClientProvider>
       </body>
     </html>
   )
