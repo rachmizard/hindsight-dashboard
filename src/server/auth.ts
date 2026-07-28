@@ -116,7 +116,7 @@ async function autoSeed() {
       id: userId,
       name: "Admin",
       email,
-      emailVerified: true,
+      emailVerified: 1,
       createdAt: now,
       updatedAt: now,
     }).run()
