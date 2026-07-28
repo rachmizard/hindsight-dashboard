@@ -2,6 +2,10 @@ import { createFileRoute } from '@tanstack/react-router'
 import { BrainCircuit, Database, Network, Search } from 'lucide-react'
 
 export const Route = createFileRoute('/about')({
+  beforeLoad: async () => {
+    const { requireAuth } = await import('@/lib/auth-middleware')
+    await requireAuth()
+  },
   component: About,
 })
 

@@ -16,6 +16,10 @@ import { Skeleton } from '@/components/ui/skeleton'
 import type { RecallResult } from '@/lib/types'
 
 export const Route = createFileRoute('/recall')({
+  beforeLoad: async () => {
+    const { requireAuth } = await import('@/lib/auth-middleware')
+    await requireAuth()
+  },
   component: RecallPage,
   loader: async () => await getBanks(),
 })

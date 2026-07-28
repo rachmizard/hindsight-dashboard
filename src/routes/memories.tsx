@@ -13,6 +13,10 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 
 export const Route = createFileRoute('/memories')({
+  beforeLoad: async () => {
+    const { requireAuth } = await import('@/lib/auth-middleware')
+    await requireAuth()
+  },
   component: MemoriesPage,
   loader: async () => await getBanks(),
 })

@@ -1,11 +1,11 @@
 import { auth } from "@/server/auth"
 import { createServerFn } from "@tanstack/react-start"
-import { getWebRequest } from "@tanstack/react-start/server"
+import { getRequestHeaders } from "@tanstack/react-start/server"
 import { redirect } from "@tanstack/react-router"
 
 export const getSession = createServerFn({ method: "GET" }).handler(async () => {
-  const request = getWebRequest()
-  const session = await auth.api.getSession({ headers: request.headers })
+  const headers = getRequestHeaders()
+  const session = await auth.api.getSession({ headers })
   return session
 })
 

@@ -19,6 +19,10 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 
 export const Route = createFileRoute('/')({
+  beforeLoad: async () => {
+    const { requireAuth } = await import('@/lib/auth-middleware')
+    await requireAuth()
+  },
   component: Overview,
   loader: async () => await getBanks(),
 })
