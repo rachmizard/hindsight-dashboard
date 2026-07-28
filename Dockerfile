@@ -1,7 +1,10 @@
 FROM node:22-slim AS base
 
-# Install pnpm
-RUN npm install -g pnpm
+# Install pnpm + Python + build tools for native modules (better-sqlite3)
+RUN npm install -g pnpm && \
+    apt-get update && apt-get install -y --no-install-recommends \
+    python3 make g++ && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install dependencies
 FROM base AS deps
@@ -28,7 +31,7 @@ RUN mkdir -p /data && chown 1001:1001 /data
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs
 
-# Copy build output
+# Copy build output + node_modules (better-sqlite3 native binding already compiled)
 COPY --from=builder /app/.output ./.output
 COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/node_modules ./node_modules
