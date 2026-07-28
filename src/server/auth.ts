@@ -4,7 +4,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import Database from "better-sqlite3"
 import { eq } from "drizzle-orm"
 import { drizzle } from "drizzle-orm/better-sqlite3"
-import { mkdirSync } from "node:fs"
+import { mkdirSync, readFileSync } from "node:fs"
 import { dirname } from "node:path"
 import * as schema from "./auth-schema"
 
@@ -18,6 +18,27 @@ mkdirSync(dirname(dbPath), { recursive: true })
 const sqlite = new Database(dbPath)
 sqlite.pragma("journal_mode = WAL")
 const db = drizzle(sqlite, { schema })
+
+// Auto-run migrations on startup
+function runMigrations() {
+  try {
+    const migrationSql = readFileSync(
+      new URL("../../drizzle/0000_flawless_sunspot.sql", import.meta.url),
+      "utf-8"
+    )
+    const statements = migrationSql
+      .split("--> statement-breakpoint")
+      .map((s) => s.trim())
+      .filter(Boolean)
+    for (const stmt of statements) {
+      sqlite.exec(stmt)
+    }
+    console.log("[auth] Migrations applied successfully")
+  } catch (e: any) {
+    console.error("[auth] Migration error:", e?.message || e)
+  }
+}
+runMigrations()
 
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
