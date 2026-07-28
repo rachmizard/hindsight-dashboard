@@ -15,6 +15,7 @@ import { Route as EntitiesRouteImport } from './routes/entities'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as MemoriesRouteImport } from './routes/memories'
 import { Route as RecallRouteImport } from './routes/recall'
+import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -46,6 +47,11 @@ const RecallRoute = RecallRouteImport.update({
   path: '/recall',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
+  id: '/api/auth/$',
+  path: '/api/auth/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -54,6 +60,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/memories': typeof MemoriesRoute
   '/recall': typeof RecallRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +69,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/memories': typeof MemoriesRoute
   '/recall': typeof RecallRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,12 +79,27 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/memories': typeof MemoriesRoute
   '/recall': typeof RecallRoute
+  '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/entities' | '/login' | '/memories' | '/recall'
+  fullPaths:
+    | '/'
+    | '/about'
+    | '/entities'
+    | '/login'
+    | '/memories'
+    | '/recall'
+    | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/entities' | '/login' | '/memories' | '/recall'
+  to:
+    | '/'
+    | '/about'
+    | '/entities'
+    | '/login'
+    | '/memories'
+    | '/recall'
+    | '/api/auth/$'
   id:
     | '__root__'
     | '/'
@@ -85,6 +108,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/memories'
     | '/recall'
+    | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -94,6 +118,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   MemoriesRoute: typeof MemoriesRoute
   RecallRoute: typeof RecallRoute
+  ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -140,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RecallRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/auth/$': {
+      id: '/api/auth/$'
+      path: '/api/auth/$'
+      fullPath: '/api/auth/$'
+      preLoaderRoute: typeof ApiAuthSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -150,6 +182,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   MemoriesRoute: MemoriesRoute,
   RecallRoute: RecallRoute,
+  ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

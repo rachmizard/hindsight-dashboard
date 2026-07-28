@@ -1,12 +1,20 @@
 import { betterAuth } from "better-auth"
+import { hashPassword } from "better-auth/crypto"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import Database from "better-sqlite3"
-import { drizzle } from "drizzle-orm/better-sqlite3"
 import { eq } from "drizzle-orm"
-import { hashPassword } from "better-auth/crypto"
+import { drizzle } from "drizzle-orm/better-sqlite3"
+import { mkdirSync } from "node:fs"
+import { dirname } from "node:path"
 import * as schema from "./auth-schema"
 
-const dbPath = process.env.DATABASE_URL || "/data/better-auth.db"
+const isProduction = process.env.NODE_ENV === "production"
+const dbPath =
+  process.env.DATABASE_URL ||
+  (isProduction ? "/data/better-auth.db" : "./.data/better-auth.db")
+
+mkdirSync(dirname(dbPath), { recursive: true })
+
 const sqlite = new Database(dbPath)
 sqlite.pragma("journal_mode = WAL")
 const db = drizzle(sqlite, { schema })
@@ -26,7 +34,7 @@ export const auth = betterAuth({
   },
   advanced: {
     defaultCookieAttributes: {
-      secure: true,
+      secure: isProduction,
       httpOnly: true,
       sameSite: "lax",
     },

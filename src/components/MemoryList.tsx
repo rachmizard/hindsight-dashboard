@@ -1,5 +1,6 @@
 import { Badge } from '@/components/ui/badge'
 import type { MemoryItem } from '@/lib/types'
+import { FileSearch } from 'lucide-react'
 
 interface MemoryListProps {
   memories: MemoryItem[]
@@ -10,37 +11,51 @@ interface MemoryListProps {
 export function MemoryList({ memories, selectedId, onSelect }: MemoryListProps) {
   if (memories.length === 0) {
     return (
-      <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">
-        No memories found
+      <div className="flex min-h-64 items-center justify-center p-6 text-center">
+        <div className="max-w-xs">
+          <FileSearch className="mx-auto size-7 text-muted-foreground" aria-hidden="true" />
+          <p className="mt-3 text-sm font-semibold text-foreground">No matching memories</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Adjust the filter or choose a different memory bank.
+          </p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="space-y-3">
+    <div className="divide-y divide-border">
       {memories.map((memory) => (
         <button
+          type="button"
           key={memory.id}
           onClick={() => onSelect(memory.id)}
-          className={`w-full cursor-pointer text-left transition rounded-lg border p-3 ${
+          aria-pressed={selectedId === memory.id}
+          className={`w-full cursor-pointer rounded-lg px-3 py-3.5 text-left outline-none ${
             selectedId === memory.id
-              ? 'border-primary bg-primary/5'
-              : 'border-border hover:border-primary/50'
+              ? 'bg-accent text-accent-foreground'
+              : 'hover:bg-muted/75'
           }`}
         >
-          <div className="mb-1 flex items-center gap-2">
-            <Badge variant={memory.type === 'fact' ? 'default' : 'secondary'}>
+          <div className="mb-2 flex min-w-0 items-center gap-2">
+            <Badge
+              variant={memory.type === 'fact' ? 'default' : 'secondary'}
+              className="rounded-md"
+            >
               {memory.type}
             </Badge>
             {memory.tags?.slice(0, 3).map((tag) => (
-              <Badge key={tag} variant="outline" className="text-xs">
+              <Badge key={tag} variant="outline" className="max-w-28 truncate rounded-md text-[11px]">
                 {tag}
               </Badge>
             ))}
           </div>
-          <p className="line-clamp-2 text-sm">{memory.text}</p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {new Date(memory.created_at).toLocaleDateString()}
+          <p className="line-clamp-2 text-sm leading-6">{memory.text}</p>
+          <p className="mt-2 text-xs text-muted-foreground">
+            {new Intl.DateTimeFormat(undefined, {
+              dateStyle: 'medium',
+              timeStyle: 'short',
+            }).format(new Date(memory.created_at))}
           </p>
         </button>
       ))}

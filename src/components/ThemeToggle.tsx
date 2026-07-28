@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
+import { Monitor, Moon, Sun } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 type ThemeMode = 'light' | 'dark' | 'auto'
 
 function getInitialMode(): ThemeMode {
   if (typeof window === 'undefined') {
-    return 'auto'
+    return 'light'
   }
 
   const stored = window.localStorage.getItem('theme')
@@ -12,7 +14,7 @@ function getInitialMode(): ThemeMode {
     return stored
   }
 
-  return 'auto'
+  return 'light'
 }
 
 function applyThemeMode(mode: ThemeMode) {
@@ -32,7 +34,7 @@ function applyThemeMode(mode: ThemeMode) {
 }
 
 export default function ThemeToggle() {
-  const [mode, setMode] = useState<ThemeMode>('auto')
+  const [mode, setMode] = useState<ThemeMode>('light')
 
   useEffect(() => {
     const initialMode = getInitialMode()
@@ -67,15 +69,19 @@ export default function ThemeToggle() {
       ? 'Theme mode: auto (system). Click to switch to light mode.'
       : `Theme mode: ${mode}. Click to switch mode.`
 
+  const Icon = mode === 'auto' ? Monitor : mode === 'dark' ? Moon : Sun
+
   return (
-    <button
+    <Button
       type="button"
+      variant="ghost"
+      size="icon"
       onClick={toggleMode}
       aria-label={label}
       title={label}
-      className="rounded-full border border-[var(--chip-line)] bg-[var(--chip-bg)] px-3 py-1.5 text-sm font-semibold text-[var(--sea-ink)] shadow-[0_8px_22px_rgba(30,90,72,0.08)] transition hover:-translate-y-0.5"
+      className="size-11 rounded-lg text-muted-foreground hover:bg-accent hover:text-accent-foreground"
     >
-      {mode === 'auto' ? 'Auto' : mode === 'dark' ? 'Dark' : 'Light'}
-    </button>
+      <Icon className="size-[18px]" aria-hidden="true" />
+    </Button>
   )
 }

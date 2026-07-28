@@ -13,7 +13,7 @@ import { queryKeys } from '@/lib/query-keys'
 export function BankSelector() {
   const navigate = useNavigate()
   const search = useSearch({ strict: false }) as { bank?: string }
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError } = useQuery({
     queryKey: queryKeys.banks,
     queryFn: () => getBanks(),
   })
@@ -23,11 +23,20 @@ export function BankSelector() {
   return (
     <Select
       value={activeBank}
-      onValueChange={(value) => navigate({ search: { bank: value } })}
-      disabled={isLoading}
+      onValueChange={(value) =>
+        navigate({ search: (current) => ({ ...current, bank: value }) })
+      }
+      disabled={isLoading || isError || !data?.banks.length}
     >
-      <SelectTrigger className="w-[220px]">
-        <SelectValue placeholder="Select bank..." />
+      <SelectTrigger
+        className="h-10 w-full border-sidebar-border bg-sidebar text-sidebar-foreground shadow-none"
+        aria-label="Select active memory bank"
+      >
+        <SelectValue
+          placeholder={
+            isError ? 'Banks unavailable' : isLoading ? 'Loading banks…' : 'No banks found'
+          }
+        />
       </SelectTrigger>
       <SelectContent>
         {data?.banks.map((bank) => (
