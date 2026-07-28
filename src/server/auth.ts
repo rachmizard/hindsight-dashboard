@@ -17,6 +17,45 @@ mkdirSync(dirname(dbPath), { recursive: true })
 
 const sqlite = new Database(dbPath)
 sqlite.pragma("journal_mode = WAL")
+
+// Monkey-patch better-sqlite3 to auto-convert booleans to numbers
+// Better Auth's Drizzle adapter passes JavaScript booleans as query params,
+// but better-sqlite3 only accepts numbers, strings, bigints, buffers, and null.
+const origPrepare = sqlite.prepare.bind(sqlite)
+sqlite.prepare = function (sql: string) {
+  const stmt = origPrepare(sql)
+  const origRun = stmt.run.bind(stmt)
+  const origGet = stmt.get.bind(stmt)
+  const origAll = stmt.all.bind(stmt)
+  const origIterate = stmt.iterate.bind(stmt)
+  const coerce = (params: any) => {
+    if (params && typeof params === "object" && !Array.isArray(params)) {
+      const out: Record<string, any> = {}
+      for (const [k, v] of Object.entries(params)) {
+        out[k] = typeof v === "boolean" ? (v ? 1 : 0) : v
+      }
+      return out
+    }
+    if (params && Array.isArray(params)) {
+      return params.map((v) => (typeof v === "boolean" ? (v ? 1 : 0) : v))
+    }
+    return params
+  }
+  stmt.run = function (...args: any[]) {
+    return origRun(...args.map((a: any) => (typeof a === "boolean" ? (a ? 1 : 0) : a)))
+  }
+  stmt.get = function (...args: any[]) {
+    return origGet(...args.map((a: any) => (typeof a === "boolean" ? (a ? 1 : 0) : a)))
+  }
+  stmt.all = function (...args: any[]) {
+    return origAll(...args.map((a: any) => (typeof a === "boolean" ? (a ? 1 : 0) : a)))
+  }
+  stmt.iterate = function (...args: any[]) {
+    return origIterate(...args.map((a: any) => (typeof a === "boolean" ? (a ? 1 : 0) : a)))
+  }
+  return stmt
+} as any
+
 const db = drizzle(sqlite, { schema })
 
 // Auto-run migrations on startup (inline SQL — no external file dependency)
