@@ -6,7 +6,9 @@ import { getBanks } from '@/server/banks'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Search, Sparkles } from 'lucide-react'
 import type { RecallResult } from '@/lib/types'
 
 export const Route = createFileRoute('/recall')({
@@ -34,7 +36,7 @@ function RecallPage() {
 
   return (
     <div className="p-6 space-y-4">
-      <h2 className="text-xl font-semibold">Recall Search — {bankId}</h2>
+      <h2 className="text-xl font-semibold text-[var(--sea-ink)]">Recall Search — {bankId}</h2>
       <form onSubmit={handleSearch} className="flex gap-2 max-w-lg">
         <Input
           placeholder="Search memories..."
@@ -42,11 +44,41 @@ function RecallPage() {
           onChange={(e) => setQuery(e.target.value)}
         />
         <Button type="submit" disabled={mutation.isPending || !query.trim()}>
-          {mutation.isPending ? 'Searching...' : 'Search'}
+          {mutation.isPending ? (
+            <>
+              <Search className="h-4 w-4 animate-pulse" />
+              Searching...
+            </>
+          ) : (
+            <>
+              <Search className="h-4 w-4" />
+              Search
+            </>
+          )}
         </Button>
       </form>
+
       <div className="space-y-3">
-        {results.map((result) => (
+        {mutation.isPending && (
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <Card key={i}>
+                <CardHeader>
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-5 w-16" />
+                    <Skeleton className="h-3 w-48" />
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-4 w-3/4" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
+
+        {!mutation.isPending && results.map((result) => (
           <Card key={result.id}>
             <CardHeader>
               <div className="flex items-center gap-2">
@@ -68,8 +100,26 @@ function RecallPage() {
             </CardContent>
           </Card>
         ))}
-        {results.length === 0 && !mutation.isPending && query && (
-          <p className="text-muted-foreground text-sm">No results. Try a different query.</p>
+
+        {!mutation.isPending && results.length === 0 && !query && (
+          <Card>
+            <CardContent className="flex h-48 items-center justify-center">
+              <div className="text-center">
+                <Sparkles className="mx-auto mb-2 h-8 w-8 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">
+                  Enter a query above to search through memories
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {!mutation.isPending && results.length === 0 && query && (
+          <Card>
+            <CardContent className="flex h-48 items-center justify-center">
+              <p className="text-sm text-muted-foreground">No results. Try a different query.</p>
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>

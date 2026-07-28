@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as EntitiesRouteImport } from './routes/entities'
+import { Route as LoginRouteImport } from './routes/login'
 import { Route as MemoriesRouteImport } from './routes/memories'
 import { Route as RecallRouteImport } from './routes/recall'
 
@@ -30,6 +31,11 @@ const EntitiesRoute = EntitiesRouteImport.update({
   path: '/entities',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MemoriesRoute = MemoriesRouteImport.update({
   id: '/memories',
   path: '/memories',
@@ -45,6 +51,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/entities': typeof EntitiesRoute
+  '/login': typeof LoginRoute
   '/memories': typeof MemoriesRoute
   '/recall': typeof RecallRoute
 }
@@ -52,6 +59,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/entities': typeof EntitiesRoute
+  '/login': typeof LoginRoute
   '/memories': typeof MemoriesRoute
   '/recall': typeof RecallRoute
 }
@@ -60,21 +68,30 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/entities': typeof EntitiesRoute
+  '/login': typeof LoginRoute
   '/memories': typeof MemoriesRoute
   '/recall': typeof RecallRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/about' | '/entities' | '/memories' | '/recall'
+  fullPaths: '/' | '/about' | '/entities' | '/login' | '/memories' | '/recall'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/about' | '/entities' | '/memories' | '/recall'
-  id: '__root__' | '/' | '/about' | '/entities' | '/memories' | '/recall'
+  to: '/' | '/about' | '/entities' | '/login' | '/memories' | '/recall'
+  id:
+    | '__root__'
+    | '/'
+    | '/about'
+    | '/entities'
+    | '/login'
+    | '/memories'
+    | '/recall'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   EntitiesRoute: typeof EntitiesRoute
+  LoginRoute: typeof LoginRoute
   MemoriesRoute: typeof MemoriesRoute
   RecallRoute: typeof RecallRoute
 }
@@ -102,6 +119,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EntitiesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/memories': {
       id: '/memories'
       path: '/memories'
@@ -123,6 +147,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   EntitiesRoute: EntitiesRoute,
+  LoginRoute: LoginRoute,
   MemoriesRoute: MemoriesRoute,
   RecallRoute: RecallRoute,
 }

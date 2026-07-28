@@ -9,9 +9,12 @@
     "dev": "vite dev --port 3000",
     "generate-routes": "tsr generate",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "seed": "tsx src/server/seed.ts"
   },
   "dependencies": {
+    "@better-auth-ui/core": "^1.6.36",
+    "@better-auth-ui/react": "^1.6.36",
     "@tailwindcss/vite": "^4.1.18",
     "@tanstack/react-devtools": "latest",
     "@tanstack/react-query": "^5.101.4",
@@ -19,8 +22,12 @@
     "@tanstack/react-router-devtools": "latest",
     "@tanstack/react-start": "latest",
     "axios": "^1.18.1",
+    "better-auth": "^1.6.25",
+    "better-sqlite3": "^13.0.1",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "drizzle-kit": "^0.31.10",
+    "drizzle-orm": "^0.45.2",
     "lucide-react": "^1.27.0",
     "nitro": "3.0.260610-beta",
     "radix-ui": "^1.6.7",
@@ -46,7 +53,8 @@
   "pnpm": {
     "onlyBuiltDependencies": [
       "esbuild",
-      "lightningcss"
+      "lightningcss",
+      "better-sqlite3"
     ]
   }
 }

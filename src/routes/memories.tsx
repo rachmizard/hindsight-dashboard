@@ -7,6 +7,8 @@ import { queryKeys } from '@/lib/query-keys'
 import { MemoryList } from '@/components/MemoryList'
 import { MemoryDetail } from '@/components/MemoryDetail'
 import { Input } from '@/components/ui/input'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Card, CardContent } from '@/components/ui/card'
 
 export const Route = createFileRoute('/memories')({
   component: MemoriesPage,
@@ -37,7 +39,7 @@ function MemoriesPage() {
 
   return (
     <div className="p-6 space-y-4">
-      <h2 className="text-xl font-semibold">Memories — {bankId}</h2>
+      <h2 className="text-xl font-semibold text-[var(--sea-ink)]">Memories — {bankId}</h2>
       <Input
         placeholder="Filter memories..."
         value={searchText}
@@ -47,7 +49,17 @@ function MemoriesPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div>
           {isLoading ? (
-            <p className="text-muted-foreground text-sm">Loading...</p>
+            <div className="space-y-3">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <Card key={i}>
+                  <CardContent className="p-3">
+                    <Skeleton className="h-4 w-16 mb-2" />
+                    <Skeleton className="h-4 w-full mb-1" />
+                    <Skeleton className="h-4 w-3/4" />
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           ) : (
             <MemoryList memories={filtered} selectedId={selectedId} onSelect={setSelectedId} />
           )}

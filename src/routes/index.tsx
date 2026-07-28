@@ -6,7 +6,9 @@ import { StatCard } from '@/components/StatCard'
 import { FactTypeChart } from '@/components/FactTypeChart'
 import { LinkTypeChart } from '@/components/LinkTypeChart'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Skeleton } from '@/components/ui/skeleton'
 import { useSearch } from '@tanstack/react-router'
+import { BarChart3, Link, FileText, Eye } from 'lucide-react'
 
 export const Route = createFileRoute('/')({
   component: Overview,
@@ -25,17 +27,37 @@ function Overview() {
   })
 
   if (isLoading || !stats) {
-    return <div className="p-6 text-muted-foreground">Loading stats...</div>
+    return (
+      <div className="p-6 space-y-6">
+        <Skeleton className="h-8 w-64" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader><Skeleton className="h-4 w-24" /></CardHeader>
+              <CardContent><Skeleton className="h-8 w-16" /></CardContent>
+            </Card>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {Array.from({ length: 2 }).map((_, i) => (
+            <Card key={i}>
+              <CardHeader><Skeleton className="h-5 w-40" /></CardHeader>
+              <CardContent><Skeleton className="h-48 w-full" /></CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="p-6 space-y-6">
-      <h2 className="text-xl font-semibold">Overview — {bankId}</h2>
+      <h2 className="text-xl font-semibold text-[var(--sea-ink)]">Overview — {bankId}</h2>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard title="Total Nodes" value={stats.total_nodes} />
-        <StatCard title="Total Links" value={stats.total_links} />
-        <StatCard title="Documents" value={stats.total_documents} />
-        <StatCard title="Observations" value={stats.total_observations} />
+        <StatCard title="Total Nodes" value={stats.total_nodes} icon={BarChart3} />
+        <StatCard title="Total Links" value={stats.total_links} icon={Link} />
+        <StatCard title="Documents" value={stats.total_documents} icon={FileText} />
+        <StatCard title="Observations" value={stats.total_observations} icon={Eye} />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
