@@ -1,7 +1,6 @@
 import { betterAuth } from "better-auth"
 import { hashPassword } from "better-auth/crypto"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
-import { tanstackStartCookies } from "better-auth/tanstack-start"
 import Database from "better-sqlite3"
 import { eq } from "drizzle-orm"
 import { drizzle } from "drizzle-orm/better-sqlite3"
@@ -33,7 +32,6 @@ export const auth = betterAuth({
     expiresIn: 60 * 60 * 24 * 7, // 7 days
     updateAge: 60 * 60 * 24, // update every 24h
   },
-  plugins: [tanstackStartCookies()],
   advanced: {
     defaultCookieAttributes: {
       secure: isProduction,
