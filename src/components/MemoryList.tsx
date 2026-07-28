@@ -1,40 +1,16 @@
-import { useQuery } from '@tanstack/react-query'
-import { getMemories } from '@/server/memories'
-import { queryKeys } from '@/lib/query-keys'
 import { Badge } from '@/components/ui/badge'
-import { Skeleton } from '@/components/ui/skeleton'
 import type { MemoryItem } from '@/lib/types'
 
 interface MemoryListProps {
-  bankId: string
-  page?: number
-  type?: string
-  tag?: string
-  onSelect?: (memory: MemoryItem) => void
+  memories: MemoryItem[]
+  selectedId: string | null
+  onSelect: (id: string) => void
 }
 
-export default function MemoryList({ bankId, page = 1, type, tag, onSelect }: MemoryListProps) {
-  const { data, isLoading } = useQuery({
-    queryKey: queryKeys.memories.list(bankId, { page, type, tag }),
-    queryFn: () => getMemories(bankId, { page, type, tag }),
-    enabled: !!bankId,
-  })
-
-  if (isLoading) {
-    return (
-      <div className="space-y-3">
-        {Array.from({ length: 5 }).map((_, i) => (
-          <Skeleton key={i} className="h-20 w-full rounded-lg" />
-        ))}
-      </div>
-    )
-  }
-
-  const memories = data?.memories ?? []
-
+export function MemoryList({ memories, selectedId, onSelect }: MemoryListProps) {
   if (memories.length === 0) {
     return (
-      <div className="flex h-48 items-center justify-center text-sm text-[var(--sea-ink-soft)]">
+      <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">
         No memories found
       </div>
     )
@@ -45,8 +21,12 @@ export default function MemoryList({ bankId, page = 1, type, tag, onSelect }: Me
       {memories.map((memory) => (
         <button
           key={memory.id}
-          onClick={() => onSelect?.(memory)}
-          className="demo-list-item w-full cursor-pointer text-left transition hover:border-[var(--lagoon-deep)]"
+          onClick={() => onSelect(memory.id)}
+          className={`w-full cursor-pointer text-left transition rounded-lg border p-3 ${
+            selectedId === memory.id
+              ? 'border-primary bg-primary/5'
+              : 'border-border hover:border-primary/50'
+          }`}
         >
           <div className="mb-1 flex items-center gap-2">
             <Badge variant={memory.type === 'fact' ? 'default' : 'secondary'}>
@@ -58,10 +38,8 @@ export default function MemoryList({ bankId, page = 1, type, tag, onSelect }: Me
               </Badge>
             ))}
           </div>
-          <p className="line-clamp-2 text-sm text-[var(--sea-ink)]">
-            {memory.content}
-          </p>
-          <p className="mt-1 text-xs text-[var(--sea-ink-soft)]">
+          <p className="line-clamp-2 text-sm">{memory.text}</p>
+          <p className="mt-1 text-xs text-muted-foreground">
             {new Date(memory.created_at).toLocaleDateString()}
           </p>
         </button>

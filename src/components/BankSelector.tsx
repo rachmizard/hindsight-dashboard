@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { getBanks } from '@/server/banks'
-import { queryKeys } from '@/lib/query-keys'
+import { useNavigate, useSearch } from '@tanstack/react-router'
 import {
   Select,
   SelectContent,
@@ -8,42 +7,34 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { getBanks } from '@/server/banks'
+import { queryKeys } from '@/lib/query-keys'
 
-interface BankSelectorProps {
-  value?: string
-  onValueChange?: (value: string) => void
-}
-
-export default function BankSelector({ value, onValueChange }: BankSelectorProps) {
+export function BankSelector() {
+  const navigate = useNavigate()
+  const search = useSearch({ strict: false }) as { bank?: string }
   const { data, isLoading } = useQuery({
-    queryKey: queryKeys.banks.list(),
-    queryFn: getBanks,
+    queryKey: queryKeys.banks,
+    queryFn: () => getBanks(),
   })
 
-  if (isLoading) {
-    return (
-      <div className="h-9 w-full animate-pulse rounded-md bg-[var(--chip-bg)]" />
-    )
-  }
-
-  const banks = data?.banks ?? []
+  const activeBank = search.bank || data?.banks[0]?.bank_id || ''
 
   return (
-    <Select value={value} onValueChange={onValueChange}>
-      <SelectTrigger className="w-full">
-        <SelectValue placeholder="Select a bank..." />
+    <Select
+      value={activeBank}
+      onValueChange={(value) => navigate({ search: { bank: value } })}
+      disabled={isLoading}
+    >
+      <SelectTrigger className="w-[220px]">
+        <SelectValue placeholder="Select bank..." />
       </SelectTrigger>
       <SelectContent>
-        {banks.map((bank) => (
-          <SelectItem key={bank.id} value={bank.id}>
-            {bank.name}
+        {data?.banks.map((bank) => (
+          <SelectItem key={bank.bank_id} value={bank.bank_id}>
+            {bank.name} ({bank.fact_count})
           </SelectItem>
         ))}
-        {banks.length === 0 && (
-          <SelectItem value="__none__" disabled>
-            No banks available
-          </SelectItem>
-        )}
       </SelectContent>
     </Select>
   )

@@ -1,11 +1,19 @@
 import axios from 'axios'
 
-const api = axios.create({
-  baseURL: process.env.HINDSIGHT_API_URL || 'http://localhost:8080',
-  headers: {
-    'X-API-Key': process.env.HINDSIGHT_API_KEY || '',
-    'Content-Type': 'application/json',
-  },
-})
+export function getApiClient() {
+  const baseURL = process.env.HINDSIGHT_API_URL || 'http://localhost:9077'
+  const apiKey = process.env.HINDSIGHT_API_KEY
 
-export default api
+  if (!apiKey) {
+    throw new Error('HINDSIGHT_API_KEY environment variable is required')
+  }
+
+  return axios.create({
+    baseURL,
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    timeout: 30000,
+  })
+}

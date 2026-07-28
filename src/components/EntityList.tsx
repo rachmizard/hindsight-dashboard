@@ -7,24 +7,25 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
-import type { EntityGraphNode, EntityGraphEdge } from '@/lib/types'
+import type { EntityGraphResponse } from '@/lib/types'
 
 interface EntityListProps {
-  nodes: EntityGraphNode[]
-  edges: EntityGraphEdge[]
+  data: EntityGraphResponse
 }
 
-export default function EntityList({ nodes, edges }: EntityListProps) {
+export function EntityList({ data }: EntityListProps) {
+  const { nodes, edges } = data
+
   if (nodes.length === 0) {
     return (
-      <div className="flex h-48 items-center justify-center text-sm text-[var(--sea-ink-soft)]">
+      <div className="flex h-48 items-center justify-center text-sm text-muted-foreground">
         No entities found
       </div>
     )
   }
 
   return (
-    <div className="demo-table-shell">
+    <div>
       <Table>
         <TableHeader>
           <TableRow>
@@ -45,7 +46,7 @@ export default function EntityList({ nodes, edges }: EntityListProps) {
                   {node.group ? (
                     <Badge variant="outline">{node.group}</Badge>
                   ) : (
-                    <span className="text-[var(--sea-ink-soft)]">—</span>
+                    <span className="text-muted-foreground">—</span>
                   )}
                 </TableCell>
                 <TableCell>{connectionCount}</TableCell>

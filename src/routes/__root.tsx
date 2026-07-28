@@ -3,7 +3,7 @@ import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanStackDevtools } from '@tanstack/react-devtools'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { Link, Outlet } from '@tanstack/react-router'
-import BankSelector from '../components/BankSelector'
+import { BankSelector } from '../components/BankSelector'
 
 import appCss from '../styles.css?url'
 

@@ -1,16 +1,16 @@
 'use client'
 
 import { useEffect, useRef } from 'react'
-import type { EntityGraphNode, EntityGraphEdge } from '@/lib/types'
+import type { EntityGraphResponse } from '@/lib/types'
 
 interface EntityGraphProps {
-  nodes: EntityGraphNode[]
-  edges: EntityGraphEdge[]
+  data: EntityGraphResponse
 }
 
-export default function EntityGraph({ nodes, edges }: EntityGraphProps) {
+export function EntityGraph({ data }: EntityGraphProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const networkRef = useRef<unknown>(null)
+  const { nodes, edges } = data
 
   useEffect(() => {
     if (!containerRef.current || nodes.length === 0) return
@@ -63,13 +63,11 @@ export default function EntityGraph({ nodes, edges }: EntityGraphProps) {
           },
           font: {
             size: 10,
-            color: 'var(--sea-ink-soft)',
           },
         },
         nodes: {
           font: {
             size: 12,
-            color: 'var(--sea-ink)',
           },
           borderWidth: 2,
           shadow: true,
@@ -92,7 +90,7 @@ export default function EntityGraph({ nodes, edges }: EntityGraphProps) {
 
   if (nodes.length === 0) {
     return (
-      <div className="flex h-96 items-center justify-center text-sm text-[var(--sea-ink-soft)]">
+      <div className="flex h-96 items-center justify-center text-sm text-muted-foreground">
         No entity graph data available
       </div>
     )
@@ -101,7 +99,7 @@ export default function EntityGraph({ nodes, edges }: EntityGraphProps) {
   return (
     <div
       ref={containerRef}
-      className="h-96 w-full rounded-xl border border-[var(--line)] bg-[var(--surface)]"
+      className="h-96 w-full rounded-xl border"
     />
   )
 }

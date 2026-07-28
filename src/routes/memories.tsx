@@ -1,63 +1,59 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
+import { createFileRoute, useSearch } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
+import { getMemories } from '@/server/memories'
 import { getBanks } from '@/server/banks'
 import { queryKeys } from '@/lib/query-keys'
-import MemoryList from '@/components/MemoryList'
-import MemoryDetail from '@/components/MemoryDetail'
-import BankSelector from '@/components/BankSelector'
-import type { MemoryItem } from '@/lib/types'
+import { MemoryList } from '@/components/MemoryList'
+import { MemoryDetail } from '@/components/MemoryDetail'
+import { Input } from '@/components/ui/input'
 
-export const Route = createFileRoute('/memories')({ component: MemoriesPage })
+export const Route = createFileRoute('/memories')({
+  component: MemoriesPage,
+  loader: async () => await getBanks(),
+})
 
 function MemoriesPage() {
-  const { data: banksData } = useQuery({
-    queryKey: queryKeys.banks.list(),
-    queryFn: getBanks,
+  const banks = Route.useLoaderData()
+  const search = useSearch({ strict: false }) as { bank?: string }
+  const bankId = search.bank || banks.banks[0]?.bank_id || ''
+  const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [searchText, setSearchText] = useState('')
+
+  const { data, isLoading } = useQuery({
+    queryKey: queryKeys.memories(bankId, 100, 0),
+    queryFn: () => getMemories({ data: { bankId, limit: 100, offset: 0 } }),
+    enabled: !!bankId,
   })
 
-  const [selectedBankId, setSelectedBankId] = useState<string>('')
-  const [selectedMemory, setSelectedMemory] = useState<MemoryItem | null>(null)
+  const filtered = data?.items.filter((m) =>
+    searchText
+      ? m.text.toLowerCase().includes(searchText.toLowerCase()) ||
+        m.tags.some((t) => t.toLowerCase().includes(searchText.toLowerCase()))
+      : true
+  ) || []
 
-  const bankId = selectedBankId || banksData?.banks?.[0]?.id || ''
+  const selected = filtered.find((m) => m.id === selectedId) || null
 
   return (
-    <main className="page-wrap px-4 pb-8 pt-14">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="display-title text-3xl font-bold text-[var(--sea-ink)]">
-          Memories
-        </h1>
-        <div className="w-56">
-          <BankSelector
-            value={selectedBankId}
-            onValueChange={(v) => {
-              setSelectedBankId(v)
-              setSelectedMemory(null)
-            }}
-          />
-        </div>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <section>
-          <h2 className="demo-section-title mb-3">Memory List</h2>
-          <MemoryList
-            bankId={bankId}
-            onSelect={(memory) => setSelectedMemory(memory)}
-          />
-        </section>
-
-        <section>
-          <h2 className="demo-section-title mb-3">Detail</h2>
-          {selectedMemory ? (
-            <MemoryDetail memory={selectedMemory} />
+    <div className="p-6 space-y-4">
+      <h2 className="text-xl font-semibold">Memories — {bankId}</h2>
+      <Input
+        placeholder="Filter memories..."
+        value={searchText}
+        onChange={(e) => setSearchText(e.target.value)}
+        className="max-w-sm"
+      />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div>
+          {isLoading ? (
+            <p className="text-muted-foreground text-sm">Loading...</p>
           ) : (
-            <div className="flex h-48 items-center justify-center text-sm text-[var(--sea-ink-soft)]">
-              Select a memory to view details
-            </div>
+            <MemoryList memories={filtered} selectedId={selectedId} onSelect={setSelectedId} />
           )}
-        </section>
+        </div>
+        <MemoryDetail memory={selected} />
       </div>
-    </main>
+    </div>
   )
 }

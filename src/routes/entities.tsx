@@ -1,69 +1,49 @@
-import { createFileRoute } from '@tanstack/react-router'
-import { useState } from 'react'
+import { createFileRoute, useSearch } from '@tanstack/react-router'
 import { useQuery } from '@tanstack/react-query'
-import { getBanks } from '@/server/banks'
 import { getEntityGraph } from '@/server/entities'
+import { getBanks } from '@/server/banks'
 import { queryKeys } from '@/lib/query-keys'
-import BankSelector from '@/components/BankSelector'
-import EntityGraph from '@/components/EntityGraph'
-import EntityList from '@/components/EntityList'
+import { EntityGraph } from '@/components/EntityGraph'
+import { EntityList } from '@/components/EntityList'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
-export const Route = createFileRoute('/entities')({ component: EntitiesPage })
+export const Route = createFileRoute('/entities')({
+  component: EntitiesPage,
+  loader: async () => await getBanks(),
+})
 
 function EntitiesPage() {
-  const { data: banksData } = useQuery({
-    queryKey: queryKeys.banks.list(),
-    queryFn: getBanks,
-  })
+  const banks = Route.useLoaderData()
+  const search = useSearch({ strict: false }) as { bank?: string }
+  const bankId = search.bank || banks.banks[0]?.bank_id || ''
 
-  const [selectedBankId, setSelectedBankId] = useState<string>('')
-
-  const bankId = selectedBankId || banksData?.banks?.[0]?.id || ''
-
-  const { data: graphData, isLoading } = useQuery({
-    queryKey: queryKeys.entityGraph.byBank(bankId),
-    queryFn: () => getEntityGraph(bankId),
+  const { data, isLoading } = useQuery({
+    queryKey: queryKeys.entityGraph(bankId),
+    queryFn: () => getEntityGraph({ data: bankId }),
     enabled: !!bankId,
   })
 
-  const nodes = graphData?.nodes ?? []
-  const edges = graphData?.edges ?? []
-
   return (
-    <main className="page-wrap px-4 pb-8 pt-14">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="display-title text-3xl font-bold text-[var(--sea-ink)]">
-          Entity Graph
-        </h1>
-        <div className="w-56">
-          <BankSelector
-            value={selectedBankId}
-            onValueChange={setSelectedBankId}
-          />
-        </div>
-      </div>
-
-      {isLoading ? (
-        <div className="flex h-96 items-center justify-center text-sm text-[var(--sea-ink-soft)]">
-          Loading entity graph...
-        </div>
+    <div className="p-6 space-y-4">
+      <h2 className="text-xl font-semibold">Entities — {bankId}</h2>
+      {isLoading || !data ? (
+        <p className="text-muted-foreground text-sm">Loading...</p>
+      ) : data.total_entities === 0 ? (
+        <p className="text-muted-foreground text-sm">No entities found</p>
       ) : (
         <Tabs defaultValue="graph">
-          <TabsList className="mb-4">
+          <TabsList>
             <TabsTrigger value="graph">Graph View</TabsTrigger>
-            <TabsTrigger value="table">Table View</TabsTrigger>
+            <TabsTrigger value="list">List View</TabsTrigger>
           </TabsList>
-
           <TabsContent value="graph">
-            <EntityGraph nodes={nodes} edges={edges} />
+            <EntityGraph data={data} />
           </TabsContent>
-
-          <TabsContent value="table">
-            <EntityList nodes={nodes} edges={edges} />
+          <TabsContent value="list">
+            <EntityList data={data} />
           </TabsContent>
         </Tabs>
       )}
-    </main>
+    </div>
   )
 }

@@ -1,55 +1,52 @@
 export interface Bank {
-  id: string
+  bank_id: string
   name: string
-  description?: string
-  created_at: string
-  updated_at: string
-  memory_count?: number
+  fact_count: number
 }
 
 export interface BankListResponse {
   banks: Bank[]
-  total: number
 }
 
 export interface BankStats {
-  total_memories: number
-  total_facts: number
+  total_nodes: number
   total_links: number
-  fact_types: Record<string, number>
-  link_types: Record<string, number>
-  top_tags: { tag: string; count: number }[]
+  total_documents: number
+  total_observations: number
+  nodes_by_fact_type: Record<string, number>
+  links_by_link_type: Record<string, number>
 }
 
 export interface MemoryItem {
   id: string
   bank_id: string
-  content: string
+  text: string
   type: 'fact' | 'link'
-  metadata?: Record<string, unknown>
-  tags?: string[]
+  tags: string[]
   source?: string
   created_at: string
   updated_at: string
 }
 
 export interface MemoryListResponse {
-  memories: MemoryItem[]
+  items: MemoryItem[]
   total: number
-  page: number
-  per_page: number
 }
 
 export interface RecallResult {
   id: string
-  content: string
-  score: number
-  metadata?: Record<string, unknown>
+  text: string
+  type: string
+  scores: {
+    final: number
+    semantic: number
+    keyword: number
+  }
+  tags: string[]
 }
 
 export interface RecallResponse {
   results: RecallResult[]
-  query: string
   total: number
 }
 
@@ -69,6 +66,7 @@ export interface EntityGraphEdge {
 }
 
 export interface EntityGraphResponse {
+  total_entities: number
   nodes: EntityGraphNode[]
   edges: EntityGraphEdge[]
 }

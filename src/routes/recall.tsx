@@ -1,118 +1,77 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute, useSearch } from '@tanstack/react-router'
+import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import { getBanks } from '@/server/banks'
 import { recallMemories } from '@/server/memories'
-import { queryKeys } from '@/lib/query-keys'
-import BankSelector from '@/components/BankSelector'
+import { getBanks } from '@/server/banks'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import type { RecallResult } from '@/lib/types'
 
-export const Route = createFileRoute('/recall')({ component: RecallPage })
+export const Route = createFileRoute('/recall')({
+  component: RecallPage,
+  loader: async () => await getBanks(),
+})
 
 function RecallPage() {
-  const { data: banksData } = useQuery({
-    queryKey: queryKeys.banks.list(),
-    queryFn: getBanks,
-  })
-
-  const [selectedBankId, setSelectedBankId] = useState<string>('')
+  const banks = Route.useLoaderData()
+  const search = useSearch({ strict: false }) as { bank?: string }
+  const bankId = search.bank || banks.banks[0]?.bank_id || ''
   const [query, setQuery] = useState('')
-  const [submittedQuery, setSubmittedQuery] = useState('')
+  const [results, setResults] = useState<RecallResult[]>([])
 
-  const bankId = selectedBankId || banksData?.banks?.[0]?.id || ''
-
-  const { data: recallData, isLoading } = useQuery({
-    queryKey: queryKeys.recall.results(bankId, submittedQuery),
-    queryFn: () => recallMemories(bankId, submittedQuery),
-    enabled: !!bankId && !!submittedQuery,
+  const mutation = useMutation({
+    mutationFn: (searchQuery: string) =>
+      recallMemories({ data: { bankId, query: searchQuery } }),
+    onSuccess: (data) => setResults(data.results),
   })
 
-  function handleSearch(e: React.FormEvent) {
+  const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
-    if (query.trim()) {
-      setSubmittedQuery(query.trim())
-    }
+    if (query.trim()) mutation.mutate(query.trim())
   }
 
-  const results = recallData?.results ?? []
-
   return (
-    <main className="page-wrap px-4 pb-8 pt-14">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="display-title text-3xl font-bold text-[var(--sea-ink)]">
-          Recall Search
-        </h1>
-        <div className="w-56">
-          <BankSelector
-            value={selectedBankId}
-            onValueChange={setSelectedBankId}
-          />
-        </div>
-      </div>
-
-      <Card className="mb-8">
-        <CardContent className="pt-6">
-          <form onSubmit={handleSearch} className="flex gap-3">
-            <Input
-              placeholder="Search memories by semantic similarity..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="flex-1"
-            />
-            <Button type="submit" disabled={!query.trim() || isLoading}>
-              {isLoading ? 'Searching...' : 'Search'}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
-
-      {!submittedQuery && (
-        <div className="flex h-48 items-center justify-center text-sm text-[var(--sea-ink-soft)]">
-          Enter a query above to search memories
-        </div>
-      )}
-
-      {isLoading && (
-        <div className="flex h-48 items-center justify-center text-sm text-[var(--sea-ink-soft)]">
-          Searching...
-        </div>
-      )}
-
-      {!isLoading && submittedQuery && results.length === 0 && (
-        <div className="flex h-48 items-center justify-center text-sm text-[var(--sea-ink-soft)]">
-          No results found for &ldquo;{submittedQuery}&rdquo;
-        </div>
-      )}
-
-      {!isLoading && results.length > 0 && (
-        <section>
-          <p className="mb-3 text-sm text-[var(--sea-ink-soft)]">
-            {recallData?.total ?? results.length} result{results.length !== 1 ? 's' : ''} for &ldquo;{submittedQuery}&rdquo;
-          </p>
-          <div className="space-y-3">
-            {results.map((result) => (
-              <div key={result.id} className="demo-list-item">
-                <div className="mb-1 flex items-center gap-2">
-                  <Badge variant="outline">
-                    Score: {result.score.toFixed(3)}
-                  </Badge>
-                </div>
-                <p className="text-sm text-[var(--sea-ink)]">
-                  {result.content}
-                </p>
-                {result.metadata && Object.keys(result.metadata).length > 0 && (
-                  <pre className="mt-2 text-xs text-[var(--sea-ink-soft)]">
-                    {JSON.stringify(result.metadata, null, 2)}
-                  </pre>
-                )}
+    <div className="p-6 space-y-4">
+      <h2 className="text-xl font-semibold">Recall Search — {bankId}</h2>
+      <form onSubmit={handleSearch} className="flex gap-2 max-w-lg">
+        <Input
+          placeholder="Search memories..."
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
+        <Button type="submit" disabled={mutation.isPending || !query.trim()}>
+          {mutation.isPending ? 'Searching...' : 'Search'}
+        </Button>
+      </form>
+      <div className="space-y-3">
+        {results.map((result) => (
+          <Card key={result.id}>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Badge variant="secondary">{result.type}</Badge>
+                <span className="text-xs text-muted-foreground">
+                  Score: {result.scores.final.toFixed(3)} (semantic: {result.scores.semantic.toFixed(3)}, keyword: {result.scores.keyword.toFixed(3)})
+                </span>
               </div>
-            ))}
-          </div>
-        </section>
-      )}
-    </main>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm">{result.text}</p>
+              {result.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {result.tags.map((tag) => (
+                    <Badge key={tag} variant="outline">{tag}</Badge>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        ))}
+        {results.length === 0 && !mutation.isPending && query && (
+          <p className="text-muted-foreground text-sm">No results. Try a different query.</p>
+        )}
+      </div>
+    </div>
   )
 }

@@ -1,12 +1,17 @@
-import api from './api'
+import { createServerFn } from '@tanstack/react-start'
+import { getApiClient } from './api'
 import type { BankListResponse, BankStats } from '@/lib/types'
 
-export async function getBanks(): Promise<BankListResponse> {
-  const { data } = await api.get<BankListResponse>('/banks')
+export const getBanks = createServerFn({ method: 'GET' }).handler(async () => {
+  const client = getApiClient()
+  const { data } = await client.get<BankListResponse>('/v1/default/banks')
   return data
-}
+})
 
-export async function getBankStats(bankId: string): Promise<BankStats> {
-  const { data } = await api.get<BankStats>(`/banks/${bankId}/stats`)
-  return data
-}
+export const getBankStats = createServerFn({ method: 'GET' })
+  .validator((bankId: string) => bankId)
+  .handler(async ({ data: bankId }) => {
+    const client = getApiClient()
+    const { data } = await client.get<BankStats>(`/v1/default/banks/${bankId}/stats`)
+    return data
+  })
