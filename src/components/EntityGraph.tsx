@@ -14,10 +14,11 @@ export function EntityGraph({ data }: EntityGraphProps) {
     redraw: () => void
     setOptions: (options: object) => void
   } | null>(null)
-  const { nodes, edges } = data
+  const rawNodes = data.nodes
+  const rawEdges = data.edges
 
   useEffect(() => {
-    if (!containerRef.current || nodes.length === 0) return
+    if (!containerRef.current || rawNodes.length === 0) return
 
     let cancelled = false
     let themeObserver: MutationObserver | null = null
@@ -29,21 +30,20 @@ export function EntityGraph({ data }: EntityGraphProps) {
       const palette = readGraphPalette()
 
       const visNodes = new vis.DataSet(
-        nodes.map((n) => ({
-          id: n.id,
-          label: n.label,
-          group: n.group,
-          size: n.size ?? 20,
-          color: n.color,
+        rawNodes.map((n) => ({
+          id: n.data.id,
+          label: n.data.label,
+          size: Math.max(12, Math.min(40, (n.data.mentionCount ?? 1) * 3)),
+          color: n.data.color,
         }))
       )
 
       const visEdges = new vis.DataSet(
-        edges.map((e) => ({
-          from: e.from,
-          to: e.to,
-          label: e.label,
-          width: e.weight ?? 1,
+        rawEdges.map((e) => ({
+          from: e.data.source,
+          to: e.data.target,
+          label: e.data.linkType ?? '',
+          width: e.data.weight ?? 1,
           arrows: 'to',
         }))
       )
@@ -148,9 +148,9 @@ export function EntityGraph({ data }: EntityGraphProps) {
         networkRef.current = null
       }
     }
-  }, [nodes, edges])
+  }, [rawNodes, rawEdges])
 
-  if (nodes.length === 0) {
+  if (rawNodes.length === 0) {
     return (
       <div className="flex h-96 items-center justify-center text-sm text-muted-foreground">
         No entity graph data available
@@ -163,7 +163,7 @@ export function EntityGraph({ data }: EntityGraphProps) {
       ref={containerRef}
       className="h-[32rem] w-full rounded-lg bg-[var(--surface-sunken)]"
       role="img"
-      aria-label={`Entity relationship graph with ${nodes.length} entities and ${edges.length} connections. Drag to pan and scroll to zoom.`}
+      aria-label={`Entity relationship graph with ${rawNodes.length} entities and ${rawEdges.length} connections. Drag to pan and scroll to zoom.`}
     />
   )
 }
@@ -175,7 +175,7 @@ function readGraphPalette() {
     text: styles.getPropertyValue('--foreground').trim(),
     muted: styles.getPropertyValue('--muted-foreground').trim(),
     node: styles.getPropertyValue('--secondary').trim(),
-    nodeBorder: styles.getPropertyValue('--line-strong').trim(),
+    nodeBorder: styles.getPropertyValue('--border').trim(),
     edge: styles.getPropertyValue('--input').trim(),
     accent: styles.getPropertyValue('--primary').trim(),
     accentSoft: styles.getPropertyValue('--accent').trim(),

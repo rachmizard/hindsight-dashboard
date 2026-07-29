@@ -29,16 +29,13 @@ export function MemoryDetail({ memory }: MemoryDetailProps) {
     <article className="p-5">
       <div className="mb-4 flex flex-wrap items-center gap-2">
         <Badge
-          variant={memory.type === 'fact' ? 'default' : 'secondary'}
+          variant={memory.fact_type === 'observation' ? 'default' : 'secondary'}
           className="rounded-md"
         >
-          {memory.type}
+          {memory.fact_type}
         </Badge>
         <span className="text-xs text-muted-foreground">
-          {new Intl.DateTimeFormat(undefined, {
-            dateStyle: 'medium',
-            timeStyle: 'short',
-          }).format(new Date(memory.created_at))}
+          {formatDate(memory.date)}
         </span>
       </div>
 
@@ -62,15 +59,29 @@ export function MemoryDetail({ memory }: MemoryDetailProps) {
         </>
       )}
 
-      {memory.source && (
+      {memory.context ? (
         <>
           <Separator className="my-4" />
           <div>
-            <p className="mb-1.5 text-xs font-semibold text-muted-foreground">Source</p>
-            <p className="m-0 break-words text-sm text-foreground">{memory.source}</p>
+            <p className="mb-1.5 text-xs font-semibold text-muted-foreground">Context</p>
+            <p className="m-0 break-words text-sm text-foreground">{memory.context}</p>
           </div>
         </>
-      )}
+      ) : null}
     </article>
   )
+}
+
+function formatDate(dateStr: string | null | undefined): string {
+  if (!dateStr) return '—'
+  try {
+    const d = new Date(dateStr)
+    if (isNaN(d.getTime())) return '—'
+    return new Intl.DateTimeFormat(undefined, {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(d)
+  } catch {
+    return '—'
+  }
 }

@@ -39,10 +39,10 @@ export function MemoryList({ memories, selectedId, onSelect }: MemoryListProps) 
         >
           <div className="mb-2 flex min-w-0 items-center gap-2">
             <Badge
-              variant={memory.type === 'fact' ? 'default' : 'secondary'}
+              variant={memory.fact_type === 'observation' ? 'default' : 'secondary'}
               className="rounded-md"
             >
-              {memory.type}
+              {memory.fact_type}
             </Badge>
             {memory.tags?.slice(0, 3).map((tag) => (
               <Badge key={tag} variant="outline" className="max-w-28 truncate rounded-md text-[11px]">
@@ -52,13 +52,24 @@ export function MemoryList({ memories, selectedId, onSelect }: MemoryListProps) 
           </div>
           <p className="line-clamp-2 text-sm leading-6">{memory.text}</p>
           <p className="mt-2 text-xs text-muted-foreground">
-            {new Intl.DateTimeFormat(undefined, {
-              dateStyle: 'medium',
-              timeStyle: 'short',
-            }).format(new Date(memory.created_at))}
+            {formatDate(memory.date)}
           </p>
         </button>
       ))}
     </div>
   )
+}
+
+function formatDate(dateStr: string | null | undefined): string {
+  if (!dateStr) return '—'
+  try {
+    const d = new Date(dateStr)
+    if (isNaN(d.getTime())) return '—'
+    return new Intl.DateTimeFormat(undefined, {
+      dateStyle: 'medium',
+      timeStyle: 'short',
+    }).format(d)
+  } catch {
+    return '—'
+  }
 }

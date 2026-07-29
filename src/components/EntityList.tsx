@@ -20,8 +20,10 @@ export function EntityList({ data }: EntityListProps) {
     const counts = new Map<string, number>()
 
     for (const edge of edges) {
-      counts.set(edge.from, (counts.get(edge.from) ?? 0) + 1)
-      counts.set(edge.to, (counts.get(edge.to) ?? 0) + 1)
+      const src = edge.data.source
+      const tgt = edge.data.target
+      counts.set(src, (counts.get(src) ?? 0) + 1)
+      counts.set(tgt, (counts.get(tgt) ?? 0) + 1)
     }
 
     return counts
@@ -41,26 +43,16 @@ export function EntityList({ data }: EntityListProps) {
         <TableHeader>
           <TableRow className="bg-muted/70 hover:bg-muted/70">
             <TableHead>Entity</TableHead>
-            <TableHead>Group</TableHead>
             <TableHead className="text-right">Connections</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {nodes.map((node) => {
-            const connectionCount = connectionCounts.get(node.id) ?? 0
+            const connectionCount = connectionCounts.get(node.data.id) ?? 0
             return (
-              <TableRow key={node.id}>
+              <TableRow key={node.data.id}>
                 <TableCell className="max-w-sm font-medium">
-                  <span className="line-clamp-2">{node.label}</span>
-                </TableCell>
-                <TableCell>
-                  {node.group ? (
-                    <Badge variant="outline" className="rounded-md">
-                      {node.group}
-                    </Badge>
-                  ) : (
-                    <span className="text-muted-foreground">—</span>
-                  )}
+                  <span className="line-clamp-2">{node.data.label}</span>
                 </TableCell>
                 <TableCell className="text-right font-mono text-xs tabular-nums">
                   {connectionCount}
